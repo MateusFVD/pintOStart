@@ -75,7 +75,7 @@ static void *alloc_frame (struct thread *, size_t size);
 static void schedule (void);
 void thread_schedule_tail (struct thread *prev);
 static tid_t allocate_tid (void);
-bool wakeup_less_func(const struct list_elem *a, const struct list_elem *b, void *aux);
+bool wakeup_cmp(const struct list_elem *a, const struct list_elem *b, void *aux);
 
 /* Initializes the threading system by transforming the code
    that's currently running into a thread.  This can't work in
@@ -325,7 +325,7 @@ thread_yield (void)
   para inserir ordenadamente as threads de acordo com seus wakeup_ticks.
   Retorna True caso o wakeup_tick de A seja menor que o wakeup_tick de B. */
 bool
-wakeup_less_func (const struct list_elem *a, const struct list_elem *b, void *aux)
+wakeup_cmp (const struct list_elem *a, const struct list_elem *b, void *aux)
 {
   struct thread *ta, *tb; 
 
@@ -350,7 +350,7 @@ thread_sleep (int64_t wakeup_tick)
   if (cur != idle_thread)
     {
       thread_set_wakeup_tick (cur, wakeup_tick);
-      list_insert_ordered (&sleeping_list, &cur->elem, wakeup_less_func, NULL);
+      list_insert_ordered (&sleeping_list, &cur->elem, wakeup_cmp, NULL);
     }
   cur->status = THREAD_BLOCKED;
   schedule ();
