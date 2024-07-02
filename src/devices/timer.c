@@ -184,9 +184,10 @@ timer_interrupt (struct intr_frame *args UNUSED)
       //   }
 
       /* Update priority for all threads. */
-      if (timer_ticks () % 4 == 0)
+      if (timer_ticks () % 4 == 0) {
         struct thread *t = thread_current();
         thread_update_priority (t); 
+      }
     }
 }
 
