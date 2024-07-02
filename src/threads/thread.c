@@ -552,7 +552,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->wakeup_tick = 0; //iniciando wakeup_tick 
   t->magic = THREAD_MAGIC;
   t->nice = 0;
-  t->recent_cpu = FP_CONST(0);
+  //t->recent_cpu = FP_CONST(0);
 
   old_level = intr_disable ();
   list_insert_ordered (&all_list, &t->allelem, cmp_priority, NULL);
