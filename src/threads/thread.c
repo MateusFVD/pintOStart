@@ -208,6 +208,9 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
 
+  /* Yield the CPU to obey the rule for newly inserted threads. */
+  if(priority > thread_get_priority ()) thread_yield ();
+
   return tid;
 }
 
@@ -376,7 +379,7 @@ thread_wakeup (void)
         break;
 
       list_remove (&t->elem);
-      list_push_back (&ready_list, &t->elem);
+      list_insert_ordered (&ready_list, &t->elem, cmp_priority, NULL);
       t->status = THREAD_READY;
     }
   intr_set_level (old_level);
@@ -403,7 +406,18 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+  if(!thread_mlfqs){
+    struct thread *t = thread_current();
+
+    /* Base priority implementarion*/
+    if (t->priority == t->base_priority){
+        t->priority = new_priority;
+        t->base_priority = new_priority;
+      }
+    else t->base_priority = new_priority;
+
+    thread_preempt ();
+  }
 }
 
 /* Returns the current thread's priority. */
@@ -547,8 +561,21 @@ init_thread (struct thread *t, const char *name, int priority)
   t->wakeup_tick = 0; //iniciando wakeup_tick 
   t->magic = THREAD_MAGIC;
 
+  t->base_priority = priority;
+  list_init (&t->locks);
+  t->waiting_lock =NULL;
+
+  if(t != init_thread){
+    t->nice = thread_get_nice ();
+    t->recent_cpu = thread_get_recent_cpu ();
+  }
+  else{
+    t->nice = 0;
+    t->recent_cpu = 0;
+  }
+
   old_level = intr_disable ();
-  list_insert_ordered (&all_list, &t->allelem, cmp_priority, NULL);
+  list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
 }
 

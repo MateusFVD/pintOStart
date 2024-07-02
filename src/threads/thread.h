@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "threads/fixed-point.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -101,6 +102,15 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    /* Priority donation*/
+    int base_priority;                   /* Priority before donation*/
+    struct list locks;                   /* List of locks held by the thread*/ 
+    struct lock *waiting_lock;           /* Lock the thread is waiting for*/ 
+
+    /* Advanced Scheduler*/
+    int nice;                             
+    fixed_point recent_cpu;              /* CPU usage*/
   };
 
 /* If false (default), use round-robin scheduler.
@@ -149,6 +159,6 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 bool cmp_priority(const struct list_elem *t1, const struct list_elem *t2, void *aux);
-
+bool wakeup_cmp (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 #endif /* threads/thread.h */
