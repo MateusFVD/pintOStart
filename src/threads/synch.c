@@ -117,6 +117,13 @@ sema_up (struct semaphore *sema)
     thread_unblock (list_entry (list_pop_front (&sema->waiters),
                                 struct thread, elem));
   sema->value++;
+  //Checa se thread_yield ocorre
+  int max_priority = list_entry (list_begin (&ready_list),
+                                 struct thread, elem)->priority;
+  
+  if (thread_get_priority () < max_priority)
+    thread_yield ();
+  
   intr_set_level (old_level);
 }
 
