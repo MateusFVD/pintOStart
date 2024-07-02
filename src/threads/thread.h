@@ -152,7 +152,7 @@ bool cmp_priority(const struct list_elem *t1, const struct list_elem *t2, void *
 void thread_update_load_avg (void);
 void thread_update_recent_cpu (void);
 void thread_update_priority (struct thread *t);
-
+void thread_check_yield(void);
 
 
 #endif /* threads/thread.h */
