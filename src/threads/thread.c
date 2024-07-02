@@ -403,14 +403,16 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+  struct thread *t = thread_current();
+  t->priority = new_priority;
 }
 
 /* Returns the current thread's priority. */
 int
 thread_get_priority (void) 
 {
-  return thread_current ()->priority;
+  struct thread *t = thread_current();
+  return t->priority;
 }
 
 /* Insere o valor do wakeup_tick */
@@ -429,10 +431,11 @@ thread_get_wakeup_tick (struct thread *t)
 
 /* Sets the current thread's nice value to NICE. */
 void
-thread_set_nice (int nice UNUSED) 
+thread_set_nice (int nice) 
 {
-  thread_current()->nice = nice;
-	thread_update_priority(thread_current());
+  struct thread *t = thread_current();
+  t->nice = nice;
+	thread_update_priority(t);
 	thread_yield();
 }
 
@@ -440,21 +443,24 @@ thread_set_nice (int nice UNUSED)
 int
 thread_get_nice (void) 
 {
-	return thread_current()->nice;
+  struct thread *t = thread_current();
+	return t->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  return load_avg*100;
+  return 0;
+  //return load_avg*100;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  return recent_cpu*100;
+  return 0;
+  //return recent_cpu*100;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -674,19 +680,25 @@ bool cmp_priority(const struct list_elem *t1, const struct list_elem *t2, void *
   return (T1->priority) > (T2->priority); 
 }
 
-void thread_update_load_avg(void) {
-	fixed_point number_of_ready_threads;
+// void thread_update_load_avg(void) {
+// 	fixed_point number_of_ready_threads;
 
-  number_of_ready_threads = list_size (&ready_list) + (thread_current () != idle_thread);
-  number_of_ready_threads = CONVERT_TO_FIXED_POINT (number_of_ready_threads);
+//   number_of_ready_threads = list_size (&ready_list) + (thread_current () != idle_thread);
+//   number_of_ready_threads = CONVERT_TO_FIXED_POINT (number_of_ready_threads);
   
-  load_avg = (59 * load_avg / 60) + (number_of_ready_threads / 60);
-}
+//   load_avg = (59 * load_avg / 60) + (number_of_ready_threads / 60);
+// }
 
 void thread_update_recent_cpu(void) {
   //Not implemented yet.
 }
 
+void thread_check_yield(void) {
+  int max_priority = list_entry (list_begin (&ready_list), struct thread, elem)->priority;
+  
+  if (thread_get_priority () < max_priority)
+    thread_yield ();
+}
 
 void thread_update_priority(struct thread *t) {
 	if (t == idle_thread)
