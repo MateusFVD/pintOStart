@@ -431,31 +431,30 @@ thread_get_wakeup_tick (struct thread *t)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* Not yet implemented. */
+  thread_current()->nice = nice;
+	thread_update_priority(thread_current());
+	thread_yield();
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+	return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return load_avg*100;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return recent_cpu*100;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -546,6 +545,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->wakeup_tick = 0; //iniciando wakeup_tick 
   t->magic = THREAD_MAGIC;
+  t->nice = 0;
+  t->recent_cpu = FP_CONST(0);
 
   old_level = intr_disable ();
   list_insert_ordered (&all_list, &t->allelem, cmp_priority, NULL);
@@ -671,6 +672,30 @@ bool cmp_priority(const struct list_elem *t1, const struct list_elem *t2, void *
   struct thread *T1 = list_entry(t1, struct thread, elem);
   struct thread *T2 = list_entry(t2, struct thread, elem);
   return (T1->priority) > (T2->priority); 
+}
+
+void thread_update_load_avg(void) {
+	fixed_point number_of_ready_threads;
+
+  number_of_ready_threads = list_size (&ready_list) + (thread_current () != idle_thread);
+  number_of_ready_threads = CONVERT_TO_FIXED_POINT (number_of_ready_threads);
+  
+  load_avg = (59 * load_avg / 60) + (number_of_ready_threads / 60);
+}
+
+void thread_update_recent_cpu(void) {
+  //Not implemented yet.
+}
+
+
+void thread_update_priority(struct thread *t) {
+	if (t == idle_thread)
+		return;
+  
+  //Criar a funcao de ativação.
+	//t->priority = FP_INT_PART(FP_SUB_MIX(FP_SUB(FP_CONST(PRI_MAX), FP_DIV_MIX(t->recent_cpu, 4)), 2 * t->nice));
+	t->priority = t->priority < PRI_MIN ? PRI_MIN : t->priority;
+	t->priority = t->priority > PRI_MAX ? PRI_MAX : t->priority;
 }
 
 /* Offset of `stack' member within `struct thread'.
