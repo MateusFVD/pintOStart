@@ -668,7 +668,7 @@ allocate_tid (void)
 }
 
 bool cmp_priority(const struct list_elem *t1, const struct list_elem *t2, void *aux) {
-  struct thread *T1 = list_entry(t1, struct thread, elem);
+  struct  thread *T1 = list_entry(t1, struct thread, elem);
   struct thread *T2 = list_entry(t2, struct thread, elem);
   return (T1->priority) > (T2->priority); 
 }
